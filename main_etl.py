@@ -1,17 +1,17 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from etl.extract.gcs_reader import read_excel_from_gcs
 from etl.transform.ventas_transform import load_and_clean_ventas
+from etl.transform.presupuesto_transform import load_and_clean_presupuesto
 
 def extract_data():
     print("Iniciando extracción de datos...")
 
-    df_presupuesto = read_excel_from_gcs("PPTO CAM 2025.xlsx")  # Carga el archivo para presupuesto * pendiente limpiar
-
+    df_presupuesto = load_and_clean_presupuesto("PPTO CAM 2025.xlsx")  # Carga y limpieza del archivo de presupuesto
     df_ventas = load_and_clean_ventas("VENTAS CAM 2024 - 2025.xlsx")  # Carga y limpieza del archivo de ventas
 
     print("Datos extraídos y limpiados correctamente.")
+    
     return df_presupuesto, df_ventas
 
 if __name__ == '__main__':
