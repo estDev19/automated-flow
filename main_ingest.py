@@ -1,7 +1,7 @@
+import os
+import logging
 from dotenv import load_dotenv
 load_dotenv()  # Carga las variables de entorno desde un archivo .env
-
-import os
 
 from ingest.gmail_to_gcs import (
     gmail_authenticate,       # Autenticarse en Gmail
@@ -10,25 +10,41 @@ from ingest.gmail_to_gcs import (
     upload_to_gcs             # Subir los archivos descargados a Google Cloud Storage
 )
 
+# Configurar logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 def ingest_from_gmail():
-    gmail_service = gmail_authenticate()  # Se autentica con Gmail
-    print("Autenticación exitosa en Gmail.")
+    try:
+        logger.info("Iniciando la autenticación en Gmail...")
+        gmail_service = gmail_authenticate()  # Se autentica con Gmail
+        logger.info("Autenticación exitosa en Gmail.")
 
-    # Busca correos que tengan el asunto y remitente especificado
-    messages = search_emails(gmail_service, subject='Probando', sender='esteban03co@gmail.com')
-    
-    if not messages:
-        print("No se encontraron correos que coincidan con los filtros.")
-        return
+        # Busca correos que tengan el asunto y remitente especificado
+        messages = search_emails(gmail_service, subject='Probando', sender='esteban03co@gmail.com')
 
-    # Por cada correo encontrado, descarga los adjuntos y los sube a GCS
-    for msg in messages:
-        attachments = download_attachments(gmail_service, msg['id'])
-        for filepath in attachments:
-            upload_to_gcs(filepath)
-            os.remove(filepath)  # Borra el archivo local después de subirlo
+        if not messages:
+            logger.warning("No se encontraron correos que coincidan con los filtros.")
+            return
 
-    print("Ingesta finalizada correctamente.")
+        # Por cada correo encontrado, descarga los adjuntos y los sube a GCS
+        for msg in messages:
+            logger.info(f"Procesando el correo con ID: {msg['id']}")
+            attachments = download_attachments(gmail_service, msg['id'])
+            for filepath in attachments:
+                try:
+                    logger.info(f"Subiendo archivo {filepath} a GCS...")
+                    upload_to_gcs(filepath)
+                    os.remove(filepath)  # Borra el archivo local después de subirlo
+                    logger.info(f"Archivo {filepath} subido y eliminado localmente.")
+                except Exception as e:
+                    logger.error(f"Error al subir el archivo {filepath} a GCS: {str(e)}")
+
+        logger.info("Ingesta finalizada correctamente.")
+
+    except Exception as e:
+        logger.error(f"Error en el proceso de ingesta: {str(e)}")
+
 
 if __name__ == '__main__':
-    ingest_from_gmail() 
+    ingest_from_gmail()
