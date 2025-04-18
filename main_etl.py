@@ -1,25 +1,57 @@
+import logging
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv()  # Cargar variables de entorno si es necesario
+from etl.transform.ventas_transform import load_and_clean_sales
+from etl.transform.presupuesto_transform import load_and_clean_sales_forecast
+from etl.transform.comparar_presupuesto_vs_ventas import compare_forecast_vs_sales
 
-from etl.transform.ventas_transform import load_and_clean_ventas
-from etl.transform.presupuesto_transform import load_and_clean_presupuesto
+# Configuración básica de logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 def extract_data():
-    print("Iniciando extracción de datos...")
+    logging.info("Iniciando extracción y limpieza de datos...")
 
-    df_presupuesto = load_and_clean_presupuesto("PPTO CAM 2025.xlsx")  # Carga y limpieza del archivo de presupuesto
-    df_ventas = load_and_clean_ventas("VENTAS CAM 2024 - 2025.xlsx")  # Carga y limpieza del archivo de ventas
+    df_presupuesto = load_and_clean_sales_forecast("PPTO CAM 2025.xlsx")
+    df_ventas = load_and_clean_sales("VENTAS CAM 2024 - 2025.xlsx")
 
-    print("Datos extraídos y limpiados correctamente.")
-    
+    logging.info("Datos extraídos y limpiados correctamente.")
     return df_presupuesto, df_ventas
 
+def validate_columns(df_presupuesto, df_ventas):
+    """Valida que las columnas numéricas esenciales estén presentes."""
+    columnas_necesarias = {
+        "presupuesto": ["ppto_usd", "ppto_kg"],
+        "ventas": ["venta_neta_usd", "venta_neta_kilos"]
+    }
+
+    errores = []
+    for col in columnas_necesarias["presupuesto"]:
+        if col not in df_presupuesto.columns:
+            errores.append(f"Falta la columna {col} en presupuesto.")
+    for col in columnas_necesarias["ventas"]:
+        if col not in df_ventas.columns:
+            errores.append(f"Falta la columna {col} en ventas.")
+
+    if errores:
+        for error in errores:
+            logging.error(f"{error}")
+        raise ValueError("Errores en columnas requeridas detectados. Revisa la estructura de tus archivos.")
+
+    logging.info("Validación de columnas numéricas completada con éxito.")
+
 if __name__ == '__main__':
-    # Ejecuta la extracción de datos y mostramos los resultados
+    # Extracción y limpieza
     df_presupuesto, df_ventas = extract_data()
-    # Muestra los datos de ventas limpios en consola
-    print("Datos de ventas limpios:")
-    print(df_ventas.head())  # Mostrar las primeras filas de los ventas limpios
-    # Muestra los datos de presupuesto en consola
-    print("Datos de presupuesto:")
-    print(df_presupuesto.head())  # Muestra las primeras filas de los presupuesto
+
+    # Validación previa de columnas necesarias
+    validate_columns(df_presupuesto, df_ventas)
+
+    # Comparación de presupuesto vs ventas
+    df_comparado = compare_forecast_vs_sales(df_presupuesto, df_ventas)
+
+    # Vista previa
+    logging.info("Vista previa de comparación:")
+    logging.info(df_comparado.head().to_string(index=False))
