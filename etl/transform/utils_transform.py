@@ -34,9 +34,17 @@ def describe_data(df: pd.DataFrame):
 def remove_unwanted_columns(df, columns_to_remove): 
     return df.drop(columns=columns_to_remove, errors='ignore')
 
-# Estandariza los encabezados: convierte a texto, quita espacios al inicio y final, los pasa a minúsculas y reemplaza espacios por guiones bajos
+# # Estandariza los encabezados: convierte a texto, quita tildes, quita 
+# espacios al inicio y final, pasa a minúsculas y reemplaza espacios por guiones bajos
 def standardize_headers(headers):
-    return [str(h).strip().lower().replace(' ', '_') for h in headers]
+    replacements = {
+        'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u', 'ñ': 'n'
+    }
+
+    return [
+        str(h).strip().lower().replace(' ', '_').translate(str.maketrans(replacements))
+        for h in headers
+    ]
 
 # Elimina filas que estén completamente vacías
 def remove_empty_rows(df):
@@ -46,32 +54,33 @@ def remove_empty_rows(df):
 def remove_duplicates(df):
     return df.drop_duplicates()
 
-# -------------------- ESTANDARIZACIÓN ------------------------
+# ----------------- ESTANDARIZACIÓN ----------------
+
 def harmonize_column_types(df):
     """
     Fuerza tipos de datos consistentes en columnas clave compartidas entre datasets.
     """
-    columnas_tipo_str = [
-        "mes_nombre", "país", "negocio", "categoría",
-        "marca", "sub_marca", "código_material", "descripción_material"
+    str_type_columns = [
+        "mes_nombre", "pais", "negocio", "categoria",
+        "marca", "sub_marca", "codigo_material", "descripcion_material"
     ]
-    columnas_tipo_int = ["año", "mes_número"]
-    columnas_tipo_float = ["ppto_usd", "ppto_kg", "venta_bruta_usd", "venta_neta_usd", "venta_neta_kilos", "devoluciones_usd", "descuento_usd", "porcentaje_descuento", "porcentaje_devoluciones"]
+    int_type_columns = ["ano", "mes_numero"]
+    float_type_columns = ["ppto_usd", "ppto_kg", "venta_bruta_usd", "venta_neta_usd", "venta_neta_kilos", "devoluciones_usd", "descuento_usd", "porcentaje_descuento", "porcentaje_devoluciones"]
 
     # Convertir columnas de tipo string a minúsculas y eliminar espacios
-    for col in columnas_tipo_str:
+    for col in str_type_columns:
         if col in df.columns:
-            df[col] = df[col].astype(str).str.lower().str.strip()
+            df[col] = df[col].astype(str).str.strip()
 
     # Convertir columnas de tipo int
-    for col in columnas_tipo_int:
+    for col in int_type_columns:
         if col in df.columns:
             # Asegúrate de que los valores nulos sean tratados correctamente
             df[col] = pd.to_numeric(df[col], errors='coerce')
             df[col] = df[col].fillna(0).astype("Int64")  # Rellenar nulos con 0 o el valor adecuado
 
     # Convertir columnas de tipo float
-    for col in columnas_tipo_float:
+    for col in float_type_columns:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
 
