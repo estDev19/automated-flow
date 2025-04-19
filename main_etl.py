@@ -1,15 +1,18 @@
 import logging
 from dotenv import load_dotenv
-load_dotenv()  # Cargar variables de entorno si es necesario
 from etl.transform.ventas_transform import load_and_clean_sales
 from etl.transform.presupuesto_transform import load_and_clean_sales_forecast
 from etl.transform.comparar_presupuesto_vs_ventas import compare_forecast_vs_sales
+from etl.load.load_to_bigquery import load_sales_data, load_comparison_data
+from utils_log import setup_logger
 
-# Configuración básica de logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
+# Cargar variables de entorno
+load_dotenv()
+
+
+# Configurar el logger
+logger = setup_logger()
+
 
 def extract_data():
     logging.info("Iniciando extracción y limpieza de datos...")
@@ -55,3 +58,13 @@ if __name__ == '__main__':
     # Vista previa
     logging.info("Vista previa de comparación:")
     logging.info(df_comparado.head().to_string(index=False))
+
+    # Carga a BigQuery
+    logging.info("Cargando datos a BigQuery...")
+
+    # Cargar ventas y presupuesto
+    load_sales_data(df_ventas)  # Cargar ventas
+    load_comparison_data(df_comparado)  # Cargar comparado (presupuesto vs ventas)
+
+    logging.info("Carga a BigQuery completada con éxito.")
+
