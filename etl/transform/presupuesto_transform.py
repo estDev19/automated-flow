@@ -1,5 +1,4 @@
 import logging
-import pandas as pd
 from etl.extract.gcs_reader import read_excel_from_gcs
 
 # Importa funciones de limpieza de datos de utils
@@ -19,9 +18,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # Diccionario de conversión de nombres de meses en español a número
 MONTHS_ES = {
-    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4,
-    "mayo": 5, "junio": 6, "julio": 7, "agosto": 8,
-    "septiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12
+    "Enero": 1, "Febrero": 2, "Marzo": 3, "Abril": 4,
+    "Mayo": 5, "Junio": 6, "Julio": 7, "Agosto": 8,
+    "Septiembre": 9, "Octubre": 10, "Noviembre": 11, "Diciembre": 12
 }
 
 
@@ -41,19 +40,19 @@ def aggregate_and_reconcile_sales_forecast(df):
 
         # Renombrar "mes" a "mes_nombre" para homogeneidad
         df = df.rename(columns={"mes": "mes_nombre"})
-        df["mes_nombre"] = df["mes_nombre"].str.lower().str.strip()
+        df["mes_nombre"] = df["mes_nombre"].str.strip()
 
         # Conversión a número de mes
-        df["mes_número"] = df["mes_nombre"].map(MONTHS_ES)
+        df["mes_numero"] = df["mes_nombre"].map(MONTHS_ES)
 
         # Año constante (por ahora solo hay datos 2025)
-        df["año"] = 2025
+        df["ano"] = 2025
 
         # Validación de columnas clave
         columnas_necesarias = [
-            "año", "mes_número", "mes_nombre", "país", "negocio",
-            "categoría", "marca", "sub_marca", "código_material",
-            "descripción_material", "ppto_usd", "ppto_kg"
+            "ano", "mes_numero", "mes_nombre", "pais", "negocio",
+            "categoria", "marca", "sub_marca", "codigo_material",
+            "descripcion_material", "ppto_usd", "ppto_kg"
         ]
         faltantes = [col for col in columnas_necesarias if col not in df.columns]
         if faltantes:
@@ -63,15 +62,15 @@ def aggregate_and_reconcile_sales_forecast(df):
         df = df[
             (df["ppto_usd"] > 0) &
             (df["ppto_kg"] > 0) &
-            (df["mes_número"].notna())
+            (df["mes_numero"].notna())
         ]
 
         # Agrupación
         df_grouped = df.groupby(
             [
-                "año", "mes_número", "mes_nombre", "país", "negocio",
-                "categoría", "marca", "sub_marca",
-                "código_material", "descripción_material"
+                "ano", "mes_numero", "mes_nombre", "pais", "negocio",
+                "categoria", "marca", "sub_marca",
+                "codigo_material", "descripcion_material"
             ],
             as_index=False
         ).agg({
@@ -117,14 +116,13 @@ def load_and_clean_sales_forecast(filename):
         df_grouped = aggregate_and_reconcile_sales_forecast(df_cleaned)
 
         # Chequeos EDA
-        logging.info("\nAnálisis EDA de datos de presupuesto (agrupado):")
-        logging.info(check_missing_values(df_grouped))
-        logging.info(detect_duplicates(df_grouped))
-        logging.info(describe_data(df_grouped))
+        logging.info("\nAnálisis EDA de datos de presupuesto (agrupado):\n")
+        logging.info("Valores nulos por columna:\n" + f"\n{check_missing_values(df_grouped)}\n")
+        logging.info("Cantidad de registros duplicados:\n" + f"\n{detect_duplicates(df_grouped)}\n")
+        logging.info("Estadísticas descriptivas de columnas numéricas:\n" + f"\n{describe_data(df_grouped)}\n")
 
         return df_grouped
 
     except Exception as e:
         logging.error(f"Error al procesar el archivo de presupuesto: {e}")
         raise
-
