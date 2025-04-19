@@ -18,13 +18,13 @@ def compare_forecast_vs_sales(df_sales_forecast, df_sales):
     """
     try:
         # Filtrar solo año 2025 en ventas
-        df_sales_2025 = df_sales[df_sales["año"] == 2025]
-        logging.info(f"🔍 Ventas 2025: {len(df_sales_2025)} registros.")
+        df_sales_2025 = df_sales[df_sales["ano"] == 2025]
+        logging.info(f"Ventas 2025: {len(df_sales_2025)} registros.")
 
         key_columns = [
-            "año", "mes_número", "país", "negocio",
-            "categoría", "marca", "sub_marca",
-            "código_material", "descripción_material"
+            "ano", "mes_numero", "pais", "negocio",
+            "categoria", "marca", "sub_marca",
+            "codigo_material", "descripcion_material"
         ]
 
         # Verificar existencia de columnas clave en ambos DF
@@ -48,8 +48,6 @@ def compare_forecast_vs_sales(df_sales_forecast, df_sales):
         if "mes_nombre_real" in df_compared.columns:
             df_compared.drop(columns=["mes_nombre_real"], inplace=True)
         df_compared.rename(columns={"mes_nombre_ppto": "mes_nombre"}, inplace=True)
-
-        logging.info(f"Columnas después del merge: {df_compared.columns.tolist()}")
 
         # === CÁLCULO DE MÉTRICAS ===
 
@@ -81,11 +79,6 @@ def compare_forecast_vs_sales(df_sales_forecast, df_sales):
 
         # Completar NaNs con ceros
         df_compared.fillna(0, inplace=True)
-
-        # Guardar archivo local (esto puedes comentar si vas a usarlo en cloud)
-        output_path = r"C:\Users\esteb\Desktop\POZUELO\df_compared.xlsx"
-        df_compared.to_excel(output_path, index=False)
-        logging.info(f"Archivo comparado guardado en: {output_path}")
 
         return df_compared
 
