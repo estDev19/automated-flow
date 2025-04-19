@@ -6,3 +6,4 @@ etl/extract/__pycache__/
 etl/transform/__pycache__/
 etl/load/__pycache__/
 ingest/__pycache__/
+logs/etl_pipeline.log
