@@ -3,6 +3,8 @@ import logging
 from google.cloud import storage
 import pandas as pd
 from io import BytesIO
+from dotenv import load_dotenv 
+load_dotenv()
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -45,3 +47,4 @@ def read_excel_from_gcs(filename):
     except Exception as e:
         logger.error(f"Error al cargar el archivo '{filename}' desde GCS: {str(e)}")
         raise
+    
