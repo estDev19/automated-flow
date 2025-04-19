@@ -15,7 +15,7 @@ TOKEN_PATH = os.getenv("TOKEN_PATH")  # Ruta del token de acceso
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("SERVICE_KEY_PATH")  # Ruta de la clave de servicio
 
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']  # Alcance para leer correos (solo lectura en Gmail)
-FILTER_SUBJECT = 'Probando'
+FILTER_SUBJECT = 'Archivos adjuntos: presupuesto 2025 - ventas 2024 y 2025'  # Asunto de los correos a filtrar
 FILTER_SENDER = 'esteban03co@gmail.com'
 
 TEMP_DIR = 'temp_files'  # Directorio temporal para guardar archivos adjuntos, lo crea si no existe
