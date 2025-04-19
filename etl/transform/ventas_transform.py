@@ -18,7 +18,6 @@ from etl.transform.utils_transform import (
 # Configurar logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-
 def aggregate_and_reconcile_sales(df):
     """
     Agrupa los datos de ventas por una clave compuesta y suma métricas numéricas.
@@ -57,10 +56,10 @@ def aggregate_and_reconcile_sales(df):
         # Agregación por clave compuesta
         aggregated = df.groupby(
             [
-                "año", "mes_número", "mes_nombre",
-                "país", "negocio", "categoría",
+                "ano", "mes_numero", "mes_nombre",
+                "pais", "negocio", "categoria",
                 "marca", "sub_marca",
-                "código_material", "descripción_material"
+                "codigo_material", "descripcion_material"
             ],
             as_index=False
         ).agg({
@@ -118,11 +117,12 @@ def load_and_clean_sales(filename):
         df_grouped = aggregate_and_reconcile_sales(df_cleaned)
 
         # Chequeos EDA
-        logging.info("\nAnálisis EDA de datos de ventas (agrupado):")
-        logging.info(check_missing_values(df_grouped))
-        logging.info(check_outliers_iqr(df_grouped, ["venta_bruta_usd", "venta_neta_kilos"]))
-        logging.info(detect_duplicates(df_grouped))
-        logging.info(describe_data(df_grouped))
+        logging.info("\nAnálisis EDA de datos de ventas (agrupado):\n")
+        logging.info("Valores nulos por columna:\n" + f"\n{check_missing_values(df_grouped)}\n")
+        logging.info("Detección de outliers utilizando IQR para 'venta_bruta_usd' y 'venta_neta_kilos':\n" +
+                    f"\n{check_outliers_iqr(df_grouped, ['venta_bruta_usd', 'venta_neta_kilos'])}\n")
+        logging.info("Cantidad de registros duplicados:\n" + f"\n{detect_duplicates(df_grouped)}\n")
+        logging.info("Estadísticas descriptivas de columnas numéricas:\n" + f"\n{describe_data(df_grouped)}\n")
 
         return df_grouped
 
