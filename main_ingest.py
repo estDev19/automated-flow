@@ -1,7 +1,9 @@
 import os
-import logging
 from dotenv import load_dotenv
-load_dotenv()  # Carga las variables de entorno desde un archivo .env
+from utils_log import setup_logger
+
+# Cargar variables de entorno
+load_dotenv()
 
 from ingest.gmail_to_gcs import (
     gmail_authenticate,       # Autenticarse en Gmail
@@ -10,9 +12,8 @@ from ingest.gmail_to_gcs import (
     upload_to_gcs             # Subir los archivos descargados a Google Cloud Storage
 )
 
-# Configurar logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+# Configurar el logger
+logger = setup_logger()
 
 def ingest_from_gmail():
     try:
